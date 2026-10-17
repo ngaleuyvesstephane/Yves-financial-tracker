@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#121212">
+  <title>P&L Portfolio Tracker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #121212; color: #E0E0E0; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 70px; }
+    header { background-color: #1E1E1E; padding: 16px; text-align: center; border-bottom: 1px solid #2C2C2C; position: sticky; top: 0; z-index: 100; }
+    header h1 { font-size: 20px; font-weight: 700; color: #FFFFFF; }
+    
+    .container { padding: 16px; max-width: 500px; margin: 0 auto; width: 100%; }
+    
+    .card { background-color: #1E1E1E; border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 1px solid #2C2C2C; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .card-title { font-size: 13px; color: #A0A0A0; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .equity-amount { font-size: 34px; font-weight: 800; color: #FFFFFF; margin-bottom: 12px; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+    
+    .metric { background: #252525; padding: 12px; border-radius: 12px; }
+    .metric-label { font-size: 11px; color: #888; margin-bottom: 4px; }
+    .metric-val { font-size: 15px; font-weight: 700; }
+
+    .green { color: #4CAF50; }
+    .red { color: #E53935; }
+
+    .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; }
+    .btn-primary { background-color: #2196F3; color: white; }
+    .btn-secondary { background-color: #2C2C2C; color: #E0E0E0; border: 1px solid #3A3A3A; }
+    
+    .nav-tabs { position: fixed; bottom: 0; left: 0; right: 0; background-color: #1E1E1E; display: flex; border-top: 1px solid #2C2C2C; height: 60px; z-index: 100; }
+    .tab-btn { flex: 1; border: none; background: none; color: #888; font-size: 13px; font-weight: 600; }
+    .tab-btn.active { color: #2196F3; }
+
+    /* Calendar Grid */
+    .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .cal-nav { background: #2C2C2C; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+    .cal-day-header { font-size: 11px; color: #888; font-weight: bold; padding-bottom: 6px; }
+    .cal-day { background: #252525; border-radius: 8px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; border: 1px solid transparent; }
+    .cal-day.today { border-color: #2196F3; }
+    .cal-day .pnl-badge { font-size: 9px; margin-top: 2px; }
+
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #252525; border-radius: 10px; margin-bottom: 8px; }
+    .list-title { font-weight: 600; font-size: 14px; }
+    .list-sub { font-size: 12px; color: #888; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #1E1E1E; border-radius: 16px; width: 100%; max-width: 400px; padding: 20px; border: 1px solid #3A3A3A; }
+    .modal h3 { margin-bottom: 16px; font-size: 18px; color: white; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12px; color: #AAA; margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; background: #2A2A2A; border: 1px solid #3A3A3A; border-radius: 8px; color: white; font-size: 15px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>P&L Portfolio Tracker</h1>
+  </header>
+
+  <div class="container">
+    <!-- DASHBOARD VIEW -->
+    <div id="view-dashboard">
+      <div class="card">
+        <div class="card-title">Total Account Equity</div>
+        <div id="total-equity" class="equity-amount">\$0.00</div>
+        
+        <div class="grid-2" style="margin-top: 12px;">
+          <div class="metric">
+            <div class="metric-label">Initial Capital</div>
+            <div id="initial-cap" class="metric-val">\$0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Net P&L</div>
+            <div id="net-pnl" class="metric-val">\$0.00</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 12px;">
+          <div class="metric">
+            <div class="metric-label">Total Deposits</div>
+            <div id="total-deps" class="metric-val green">+\$0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Total Withdrawals</div>
+            <div id="total-wths" class="metric-val red">-\$0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 16px;">
+        <button class="btn btn-primary" onclick="openPnlModal()">+ Log Day P&L</button>
+        <button class="btn btn-secondary" onclick="openCapModal()">+ Cash Flow</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">P&L Performance Overview</div>
+        <div class="grid-4" style="margin-top: 8px;">
+          <div class="metric">
+            <div class="metric-label">Today</div>
+            <div id="pnl-today" class="metric-val">\$0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">This Month</div>
+            <div id="pnl-month" class="metric-val">\$0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">All Time</div>
+            <div id="pnl-all" class="metric-val">\$0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recent Activity</div>
+        <div id="recent-list"></div>
+      </div>
+    </div>
+
+    <!-- CALENDAR VIEW -->
+    <div id="view-calendar" style="display: none;">
+      <div class="card">
+        <div class="cal-header">
+          <button class="cal-nav" onclick="changeMonth(-1)">&lt;</button>
+          <div id="cal-month-title" style="font-weight: bold; font-size: 16px;"></div>
+          <button class="cal-nav" onclick="changeMonth(1)">&gt;</button>
+        </div>
+
+        <div class="calendar-grid">
+          <div class="cal-day-header">S</div>
+          <div class="cal-day-header">M</div>
+          <div class="cal-day-header">T</div>
+          <div class="cal-day-header">W</div>
+          <div class="cal-day-header">T</div>
+          <div class="cal-day-header">F</div>
+          <div class="cal-day-header">S</div>
+        </div>
+        <div id="cal-days-grid" class="calendar-grid" style="margin-top: 6px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Monthly P&L Summary</div>
+        <div id="monthly-summary-val" style="font-size: 22px; font-weight: bold; margin-top: 6px;">\$0.00</div>
+      </div>
+    </div>
+
+    <!-- CASH FLOW LEDGER -->
+    <div id="view-ledger" style="display: none;">
+      <div class="card">
+        <div class="card-title">Capital Ledger History</div>
+        <div id="ledger-list" style="margin-top: 10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION BOTTOM BAR -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" id="tab-dash" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" id="tab-cal" onclick="switchTab('calendar')">Calendar</button>
+    <button class="tab-btn" id="tab-led" onclick="switchTab('ledger')">Cash Flow</button>
+  </nav>
+
+  <!-- P&L MODAL -->
+  <div class="modal-overlay" id="pnl-modal">
+    <div class="modal">
+      <h3>Log Daily P&L</h3>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="pnl-date">
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="pnl-type">
+          <option value="gain">Gain / Profit (+)</option>
+          <option value="loss">Loss (-)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Amount (\$)</label>
+        <input type="number" step="0.01" id="pnl-amount" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label>Note / Reference (Optional)</label>
+        <input type="text" id="pnl-note" placeholder="e.g. Trade Entry">
+      </div>
+      <div class="grid-2">
+        <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="savePnl()">Save Entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPITAL MODAL -->
+  <div class="modal-overlay" id="cap-modal">
+    <div class="modal">
+      <h3>Manage Cash Flow</h3>
+      <div class="form-group">
+        <label>Transaction Type</label>
+        <select id="cap-type">
+          <option value="initial">Set Initial Capital</option>
+          <option value="deposit">Deposit (+ Funds Added)</option>
+          <option value="withdrawal">Withdrawal (- Funds Taken)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Amount (\$)</label>
+        <input type="number" step="0.01" id="cap-amount" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label>Note / Reference (Optional)</label>
+        <input type="text" id="cap-note" placeholder="e.g. Bank Transfer">
+      </div>
+      <div class="grid-2">
+        <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCapital()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let store = JSON.parse(localStorage.getItem('pnl_tracker_v1')) || {
+      initialCapital: 0,
+      capitalTransactions: [],
+      pnlEntries: {}
+    };
+
+    let currentCalDate = new Date();
+
+    function saveData() {
+      localStorage.setItem('pnl_tracker_v1', JSON.stringify(store));
+      render();
+    }
+
+    function switchTab(tab) {
+      document.getElementById('view-dashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
+      document.getElementById('view-calendar').style.display = tab === 'calendar' ? 'block' : 'none';
+      document.getElementById('view-ledger').style.display = tab === 'ledger' ? 'block' : 'none';
+
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      if(tab === 'dashboard') document.getElementById('tab-dash').classList.add('active');
+      if(tab === 'calendar') document.getElementById('tab-cal').classList.add('active');
+      if(tab === 'ledger') document.getElementById('tab-led').classList.add('active');
+
+      if(tab === 'calendar') renderCalendar();
+    }
+
+    function render() {
+      let initial = Number(store.initialCapital) || 0;
+      let deposits = store.capitalTransactions.filter(t => t.type === 'deposit').reduce((s,t) => s + t.amount, 0);
+      let withdrawals = store.capitalTransactions.filter(t => t.type === 'withdrawal').reduce((s,t) => s + t.amount, 0);
+
+      let pnlDates = Object.keys(store.pnlEntries);
+      let netPnl = pnlDates.reduce((s, d) => s + store.pnlEntries[d].amount, 0);
+      let equity = initial + deposits - withdrawals + netPnl;
+
+      document.getElementById('total-equity').innerText = `$${equity.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('initial-cap').innerText = `$${initial.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      document.getElementById('total-deps').innerText = `+$${deposits.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      document.getElementById('total-wths').innerText = `-$${withdrawals.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+
+      let netPnlEl = document.getElementById('net-pnl');
+      netPnlEl.innerText = (netPnl >= 0 ? '+\\(' : '-\\)') + Math.abs(netPnl).toLocaleString('en-US', {minimumFractionDigits: 2});
+      netPnlEl.className = 'metric-val ' + (netPnl >= 0 ? 'green' : 'red');
+
+      let todayStr = new Date().toISOString().split('T')[0];
+      let todayPnl = store.pnlEntries[todayStr] ? store.pnlEntries[todayStr].amount : 0;
+      updateMetric('pnl-today', todayPnl);
+      updateMetric('pnl-all', netPnl);
+
+      let recentEl = document.getElementById('recent-list');
+      recentEl.innerHTML = '';
+      let sortedDates = pnlDates.sort().reverse().slice(0, 5);
+      if(sortedDates.length === 0) {
+        recentEl.innerHTML = '<div style="color: #666; font-size: 13px;">No daily entries recorded yet.</div>';
+      } else {
+        sortedDates.forEach(d => {
+          let item = store.pnlEntries[d];
+          let isGain = item.amount >= 0;
+          recentEl.innerHTML += `
+            <div class="list-item">
+              <div>
+                <div class="list-title">${d}</div>
+                <div class="list-sub">${item.note || 'No notes'}</div>
+              </div>
+              <div class="list-title ${isGain ? 'green' : 'red'}">
+                ${isGain ? '+$' : '-$'}${Math.abs(item.amount).toFixed(2)}
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      let ledgerEl = document.getElementById('ledger-list');
+      ledgerEl.innerHTML = `<div class="list-item"><div><div class="list-title">Initial Capital</div></div><div class="list-title">$${initial.toFixed(2)}</div></div>`;
+      store.capitalTransactions.slice().reverse().forEach(t => {
+        let isDep = t.type === 'deposit';
+        ledgerEl.innerHTML += `
+          <div class="list-item">
+            <div>
+              <div class="list-title">${isDep ? 'Deposit' : 'Withdrawal'}</div>
+              <div class="list-sub">${t.date} ${t.note ? '• ' + t.note : ''}</div>
+            </div>
+            <div class="list-title ${isDep ? 'green' : 'red'}">${isDep ? '+' : '-'}$${t.amount.toFixed(2)}</div>
+          </div>
+        `;
+      });
+    }
+
+    function updateMetric(id, val) {
+      let el = document.getElementById(id);
+      el.innerText = (val >= 0 ? '+\\(' : '-\\)') + Math.abs(val).toFixed(0);
+      el.className = 'metric-val ' + (val >= 0 ? 'green' : 'red');
+    }
+
+    function openPnlModal(dateStr = null) {
+      document.getElementById('pnl-date').value = dateStr || new Date().toISOString().split('T')[0];
+      document.getElementById('pnl-amount').value = '';
+      document.getElementById('pnl-note').value = '';
+      document.getElementById('pnl-modal').classList.add('open');
+    }
+
+    function openCapModal() {
+      document.getElementById('cap-amount').value = '';
+      document.getElementById('cap-note').value = '';
+      document.getElementById('cap-modal').classList.add('open');
+    }
+
+    function closeModals() {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+    }
+
+    function savePnl() {
+      let date = document.getElementById('pnl-date').value;
+      let type = document.getElementById('pnl-type').value;
+      let amt = parseFloat(document.getElementById('pnl-amount').value) || 0;
+      let note = document.getElementById('pnl-note').value;
+
+      if(!date) return alert('Please select a date');
+      let finalAmt = type === 'gain' ? Math.abs(amt) : -Math.abs(amt);
+      
+      store.pnlEntries[date] = { amount: finalAmt, note: note };
+      saveData();
+      closeModals();
+      if(document.getElementById('view-calendar').style.display === 'block') renderCalendar();
+    }
+
+    function saveCapital() {
+      let type = document.getElementById('cap-type').value;
+      let amt = parseFloat(document.getElementById('cap-amount').value) || 0;
+      let note = document.getElementById('cap-note').value;
+
+      if(type === 'initial') {
+        store.initialCapital = amt;
+      } else {
+        store.capitalTransactions.push({
+          type: type,
+          amount: amt,
+          note: note,
+          date: new Date().toISOString().split('T')[0]
+        });
+      }
+      saveData();
+      closeModals();
+    }
+
+    function renderCalendar() {
+      let year = currentCalDate.getFullYear();
+      let month = currentCalDate.getMonth();
+      
+      let monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      document.getElementById('cal-month-title').innerText = `${monthNames[month]} ${year}`;
+
+      let firstDay = new Date(year, month, 1).getDay();
+      let daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      let grid = document.getElementById('cal-days-grid');
+      grid.innerHTML = '';
+
+      for(let i = 0; i < firstDay; i++) {
+        grid.innerHTML += '<div></div>';
+      }
+
+      let monthPnl = 0;
+      let todayStr = new Date().toISOString().split('T')[0];
+
+      for(let d = 1; d <= daysInMonth; d++) {
+        let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        let entry = store.pnlEntries[dateStr];
+        let pnlText = '';
+        let pnlClass = '';
+
+        if(entry) {
+          monthPnl += entry.amount;
+          let isGain = entry.amount >= 0;
+          pnlText = (isGain ? '+' : '-') + Math.abs(entry.amount);
+          pnlClass = isGain ? 'green' : 'red';
+        }
+
+        let isToday = dateStr === todayStr;
+
+        grid.innerHTML += `
+          <div class="cal-day ${isToday ? 'today' : ''}" onclick="openPnlModal('${dateStr}')">
+            <span>${d}</span>
+            ${pnlText ? `<span class="pnl-badge \\({pnlClass}">\\){pnlText}</span>` : ''}
+          </div>
+        `;
+      }
+
+      let mSummary = document.getElementById('monthly-summary-val');
+      mSummary.innerText = (monthPnl >= 0 ? '+\\(' : '-\\)') + Math.abs(monthPnl).toFixed(2);
+      mSummary.className = monthPnl >= 0 ? 'green' : 'red';
+    }
+
+    function changeMonth(delta) {
+      currentCalDate.setMonth(currentCalDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    render();
+  </script>
+</body>
+</html>
