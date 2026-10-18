@@ -78,27 +78,27 @@
     <div id="view-dashboard">
       <div class="card">
         <div class="card-title">Total Account Equity</div>
-        <div id="total-equity" class="equity-amount">\$0.00</div>
+        <div id="total-equity" class="equity-amount">$0.00</div>
         
         <div class="grid-2" style="margin-top: 12px;">
           <div class="metric">
             <div class="metric-label">Initial Capital</div>
-            <div id="initial-cap" class="metric-val">\$0.00</div>
+            <div id="initial-cap" class="metric-val">$0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">Net P&L</div>
-            <div id="net-pnl" class="metric-val">\$0.00</div>
+            <div id="net-pnl" class="metric-val">$0.00</div>
           </div>
         </div>
 
         <div class="grid-2" style="margin-top: 12px;">
           <div class="metric">
             <div class="metric-label">Total Deposits</div>
-            <div id="total-deps" class="metric-val green">+\$0.00</div>
+            <div id="total-deps" class="metric-val green">+$0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">Total Withdrawals</div>
-            <div id="total-wths" class="metric-val red">-\$0.00</div>
+            <div id="total-wths" class="metric-val red">-$0.00</div>
           </div>
         </div>
       </div>
@@ -113,15 +113,15 @@
         <div class="grid-3" style="margin-top: 8px;">
           <div class="metric">
             <div class="metric-label">Today</div>
-            <div id="pnl-today" class="metric-val">\$0.00</div>
+            <div id="pnl-today" class="metric-val">$0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">This Month</div>
-            <div id="pnl-month" class="metric-val">\$0.00</div>
+            <div id="pnl-month" class="metric-val">$0.00</div>
           </div>
           <div class="metric">
             <div class="metric-label">All Time</div>
-            <div id="pnl-all" class="metric-val">\$0.00</div>
+            <div id="pnl-all" class="metric-val">$0.00</div>
           </div>
         </div>
       </div>
@@ -155,7 +155,7 @@
 
       <div class="card">
         <div class="card-title">MONTHLY P&L SUMMARY</div>
-        <div id="monthly-summary-val" style="font-size: 28px; font-weight: 800; margin-top: 6px;">\$0.00</div>
+        <div id="monthly-summary-val" style="font-size: 28px; font-weight: 800; margin-top: 6px;">$0.00</div>
       </div>
     </div>
 
@@ -191,7 +191,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Amount (\$)</label>
+        <label>Amount ($)</label>
         <input type="number" step="0.01" id="pnl-amount" placeholder="0.00">
       </div>
       <div class="form-group">
@@ -220,7 +220,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Amount (\$)</label>
+        <label>Amount ($)</label>
         <input type="number" step="0.01" id="cap-amount" placeholder="0.00">
       </div>
       <div class="form-group">
@@ -267,7 +267,7 @@
       document.getElementById('view-calendar').style.display = tab === 'calendar' ? 'block' : 'none';
       document.getElementById('view-ledger').style.display = tab === 'ledger' ? 'block' : 'none';
 
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       if(tab === 'dashboard') document.getElementById('tab-dash').classList.add('active');
       if(tab === 'calendar') document.getElementById('tab-cal').classList.add('active');
       if(tab === 'ledger') document.getElementById('tab-led').classList.add('active');
@@ -276,16 +276,16 @@
     }
 
     function formatMoney(amount) {
-      return '\$' + Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return '$' + Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     function render() {
       let initial = Number(store.initialCapital) || 0;
-      let deposits = store.capitalTransactions.filter(t => t.type === 'deposit').reduce((s,t) => s + t.amount, 0);
-      let withdrawals = store.capitalTransactions.filter(t => t.type === 'withdrawal').reduce((s,t) => s + t.amount, 0);
+      let deposits = store.capitalTransactions.filter(function(t) { return t.type === 'deposit'; }).reduce(function(s,t) { return s + t.amount; }, 0);
+      let withdrawals = store.capitalTransactions.filter(function(t) { return t.type === 'withdrawal'; }).reduce(function(s,t) { return s + t.amount; }, 0);
 
       let pnlDates = Object.keys(store.pnlEntries);
-      let netPnl = pnlDates.reduce((s, d) => s + (store.pnlEntries[d] ? store.pnlEntries[d].amount : 0), 0);
+      let netPnl = pnlDates.reduce(function(s, d) { return s + (store.pnlEntries[d] ? store.pnlEntries[d].amount : 0); }, 0);
       let equity = initial + deposits - withdrawals + netPnl;
 
       document.getElementById('total-equity').innerText = formatMoney(equity);
@@ -302,10 +302,10 @@
       let todayPnl = store.pnlEntries[todayStr] ? store.pnlEntries[todayStr].amount : 0;
       
       let now = new Date();
-      let currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      let currentYearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
       let monthPnl = pnlDates
-        .filter(d => d.startsWith(currentYearMonth))
-        .reduce((s, d) => s + store.pnlEntries[d].amount, 0);
+        .filter(function(d) { return d.startsWith(currentYearMonth); })
+        .reduce(function(s, d) { return s + store.pnlEntries[d].amount; }, 0);
 
       updateMetric('pnl-today', todayPnl);
       updateMetric('pnl-month', monthPnl);
@@ -318,38 +318,34 @@
       if(sortedDates.length === 0) {
         recentEl.innerHTML = '<div style="color: #666; font-size: 13px; text-align: center; padding: 12px;">No daily entries recorded yet. Tap "+ Log Day P&L" above.</div>';
       } else {
-        sortedDates.forEach(d => {
+        sortedDates.forEach(function(d) {
           let item = store.pnlEntries[d];
           if(!item) return;
           let isGain = item.amount >= 0;
-          recentEl.innerHTML += `
-            <div class="list-item" onclick="openPnlModal('${d}')">
-              <div>
-                <div class="list-title">${d}</div>
-                <div class="list-sub">${item.note || 'No notes attached'}</div>
-              </div>
-              <div class="list-title ${isGain ? 'green' : 'red'}">
-                ${isGain ? '+' : '-'}${formatMoney(item.amount)}
-              </div>
-            </div>
-          `;
+          recentEl.innerHTML += '<div class="list-item" onclick="openPnlModal(\'' + d + '\')">' +
+            '<div>' +
+              '<div class="list-title">' + d + '</div>' +
+              '<div class="list-sub">' + (item.note || 'No notes attached') + '</div>' +
+            '</div>' +
+            '<div class="list-title ' + (isGain ? 'green' : 'red') + '">' +
+              (isGain ? '+' : '-') + formatMoney(item.amount) +
+            '</div>' +
+          '</div>';
         });
       }
 
       // Ledger List
       let ledgerEl = document.getElementById('ledger-list');
-      ledgerEl.innerHTML = `<div class="list-item"><div><div class="list-title">Initial Capital Setup</div></div><div class="list-title">${formatMoney(initial)}</div></div>`;
-      store.capitalTransactions.slice().reverse().forEach(t => {
+      ledgerEl.innerHTML = '<div class="list-item"><div><div class="list-title">Initial Capital Setup</div></div><div class="list-title">' + formatMoney(initial) + '</div></div>';
+      store.capitalTransactions.slice().reverse().forEach(function(t) {
         let isDep = t.type === 'deposit';
-        ledgerEl.innerHTML += `
-          <div class="list-item">
-            <div>
-              <div class="list-title">${isDep ? 'Deposit (+)' : 'Withdrawal (-)'}</div>
-              <div class="list-sub">${t.date} ${t.note ? '• ' + t.note : ''}</div>
-            </div>
-            <div class="list-title ${isDep ? 'green' : 'red'}">${isDep ? '+' : '-'}${formatMoney(t.amount)}</div>
-          </div>
-        `;
+        ledgerEl.innerHTML += '<div class="list-item">' +
+          '<div>' +
+            '<div class="list-title">' + (isDep ? 'Deposit (+)' : 'Withdrawal (-)') + '</div>' +
+            '<div class="list-sub">' + t.date + (t.note ? ' • ' + t.note : '') + '</div>' +
+          '</div>' +
+          '<div class="list-title ' + (isDep ? 'green' : 'red') + '">' + (isDep ? '+' : '-') + formatMoney(t.amount) + '</div>' +
+        '</div>';
       });
     }
 
@@ -359,7 +355,7 @@
       el.className = 'metric-val ' + (val >= 0 ? 'green' : 'red');
     }
 
-    function openPnlModal(dateStr = null) {
+    function openPnlModal(dateStr) {
       let selectedDate = dateStr || new Date().toISOString().split('T')[0];
       document.getElementById('pnl-date').value = selectedDate;
       loadPnlForDate(selectedDate);
@@ -378,14 +374,14 @@
       let saveBtn = document.getElementById('btn-save-pnl');
 
       if (existing) {
-        titleEl.innerText = `Edit P&L for ${dateStr}`;
+        titleEl.innerText = 'Edit P&L for ' + dateStr;
         document.getElementById('pnl-type').value = existing.amount >= 0 ? 'gain' : 'loss';
         document.getElementById('pnl-amount').value = Math.abs(existing.amount);
         document.getElementById('pnl-note').value = existing.note || '';
         deleteBtn.style.display = 'block';
         saveBtn.innerText = 'Update Entry';
       } else {
-        titleEl.innerText = `Log P&L for ${dateStr}`;
+        titleEl.innerText = 'Log P&L for ' + dateStr;
         document.getElementById('pnl-type').value = 'gain';
         document.getElementById('pnl-amount').value = '';
         document.getElementById('pnl-note').value = '';
@@ -430,7 +426,7 @@
     }
 
     function closeModals() {
-      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+      document.querySelectorAll('.modal-overlay').forEach(function(m) { m.classList.remove('open'); });
     }
 
     function saveCapital() {
@@ -469,7 +465,7 @@
       let month = currentCalDate.getMonth();
       
       let monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      document.getElementById('cal-month-title').innerText = `${monthNames[month]} ${year}`;
+      document.getElementById('cal-month-title').innerText = monthNames[month] + ' ' + year;
 
       let firstDay = new Date(year, month, 1).getDay();
       let daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -485,7 +481,7 @@
       let todayStr = new Date().toISOString().split('T')[0];
 
       for(let d = 1; d <= daysInMonth; d++) {
-        let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        let dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
         let entry = store.pnlEntries[dateStr];
         let pnlText = '';
         let pnlClass = '';
@@ -493,18 +489,18 @@
         if(entry) {
           monthPnl += entry.amount;
           let isGain = entry.amount >= 0;
-          pnlText = (isGain ? '+' : '-') + '\$' + Math.abs(entry.amount).toFixed(0);
+          pnlText = (isGain ? '+' : '-') + '$' + Math.abs(entry.amount).toFixed(0);
           pnlClass = isGain ? 'green' : 'red';
         }
 
         let isToday = dateStr === todayStr;
 
-        grid.innerHTML += `
-          <div class="cal-day ${isToday ? 'today' : ''}" onclick="openPnlModal('${dateStr}')">
-            <span>${d}</span>
-            ${pnlText ? `<span class="pnl-badge \\({pnlClass}">\\){pnlText}</span>` : ''}
-          </div>
-        `;
+        let badgeHtml = pnlText ? '<span class="pnl-badge ' + pnlClass + '">' + pnlText + '</span>' : '';
+
+        grid.innerHTML += '<div class="cal-day ' + (isToday ? 'today' : '') + '" onclick="openPnlModal(\'' + dateStr + '\')">' +
+          '<span>' + d + '</span>' +
+          badgeHtml +
+        '</div>';
       }
 
       let mSummary = document.getElementById('monthly-summary-val');
